@@ -69,6 +69,10 @@ DEV_ALLOWED_EMAILS = {
 }
 SMTP_CONFIGURED = bool(SMTP_USER and SMTP_PASSWORD)
 
+# Temporary diagnostics: when DEBUG_KEY is set, GET /debug/diag?key=...&email=...
+# reports allowlist + SMTP status. Leave DEBUG_KEY unset in normal operation.
+DEBUG_KEY = os.environ.get("DEBUG_KEY", "")
+
 # --- App ---------------------------------------------------------------------
 
 app = FastAPI(title="Medical Advisors Hub")
@@ -320,6 +324,49 @@ async def protected_file(request: Request, filename: str):
     if not os.path.isfile(path):
         return Response(status_code=404)
     return FileResponse(path)
+
+
+@app.get("/debug/diag")
+async def diag(request: Request, key: str = "", email: str = ""):
+    """Secret-guarded diagnostics. Disabled unless DEBUG_KEY is set and matches."""
+    if not DEBUG_KEY or key != DEBUG_KEY:
+        return Response(status_code=404)
+
+    # 1) Airtable allowlist check
+    try:
+        emails = await _fetch_roster_emails()
+        roster = {
+            "ok": True,
+            "active_count": len(emails),
+            "email_in_roster": email.strip().lower() in emails if email else None,
+        }
+    except Exception as exc:
+        roster = {"ok": False, "error": repr(exc)}
+
+    # 2) SMTP credential check (connect + login only; sends nothing)
+    if not SMTP_CONFIGURED:
+        smtp = {"configured": False}
+    else:
+        try:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as s:
+                s.starttls()
+                s.login(SMTP_USER, SMTP_PASSWORD)
+            smtp = {"configured": True, "login": "ok"}
+        except Exception as exc:
+            smtp = {"configured": True, "login": "FAILED", "error": repr(exc)}
+
+    return {
+        "roster": roster,
+        "smtp": smtp,
+        "smtp_host": SMTP_HOST,
+        "smtp_port": SMTP_PORT,
+        "smtp_user": SMTP_USER,
+        "mail_from": MAIL_FROM,
+        "airtable_table": AIRTABLE_TABLE,
+        "email_field": AIRTABLE_EMAIL_FIELD,
+        "status_field": AIRTABLE_STATUS_FIELD,
+        "allowed_status": ALLOWED_STATUS,
+    }
 
 
 @app.get("/healthz")
