@@ -1,27 +1,227 @@
 <!--
   ===========================================================================
-  HUB CONTENT — edit this file to update what advisors see.
-  This is a static snapshot of the Notion "Medical Advisors Hub" page.
-  To update: edit the HTML below, commit, and push (Render redeploys).
+  HUB CONTENT — static snapshot of the Notion "BillionToOne Medical Advisors
+  Hub" page. Edit this file to update what advisors see, then commit + push
+  (Render redeploys automatically).
+
+  Assets (headshots, PDFs) live in /protected_files and are served via the
+  authenticated /files/<name> route — never publicly.
   ===========================================================================
 -->
 <article class="doc">
-  <h1>Medical Advisors Hub</h1>
-  <p class="placeholder-note">
-    ⚠️ Placeholder content. This will be replaced with the BillionToOne
-    Medical Advisors Hub content from Notion once the page content is provided.
-  </p>
 
-  <h2>Welcome</h2>
+  <!-- ---------- Hero ---------- -->
+  <h1>BillionToOne Medical Advisors Hub</h1>
+  <p class="lead"><em>Your one-stop resource center for UNITY Medical Advisors</em></p>
+
+  <p class="welcome">
+    As a Medical Advisor for BillionToOne, you are a critical resource for our team.
+    We value your commitment to our mission of making healthcare more accessible and
+    powerful for all.
+  </p>
   <p>
-    Welcome to the BillionToOne Medical Advisors Hub. This is where the content
-    from the Notion page will appear.
+    The content of this page is managed by our program managers (below), and reviewed
+    and updated on a monthly basis.
   </p>
 
-  <h2>Section</h2>
+  <div class="notice">
+    <p>
+      This Medical Advisors Hub contains <strong>confidential and proprietary
+      information</strong> of BillionToOne and is intended solely for use by authorized,
+      active medical advisors and HCP consultants. Access to this Hub is granted only
+      pursuant to, and subject to, the terms of the applicable advisory agreement between
+      you and BillionToOne.
+    </p>
+    <p>
+      <strong>PLEASE NOTE:</strong> The content and materials made available through this
+      Hub are subject to the confidentiality obligations set forth in your advisory
+      agreement with BillionToOne. They are being provided exclusively to support your
+      advisory services and may be used only in accordance with your agreement. Any
+      copying, reproduction, distribution, disclosure, or other use of these materials
+      outside the scope of your authorized role is strictly prohibited and may constitute
+      a breach of contract.
+    </p>
+  </div>
+
+  <p>Please see below for upcoming events and helpful resources.</p>
+
+  <!-- ---------- Program Managers ---------- -->
+  <h2>Program Managers</h2>
+  <div class="pm-grid">
+    <div class="pm-card">
+      <img src="/files/jen-hoskovec.png" alt="Jen Hoskovec" />
+      <div class="pm-name">Jen Hoskovec, MS, CGC</div>
+      <div class="pm-title">VP of Medical Affairs</div>
+      <a href="mailto:jhoskovec@billiontoone.com">jhoskovec@billiontoone.com</a>
+    </div>
+    <div class="pm-card">
+      <img src="/files/paul-hudson.png" alt="Paul Hudson" />
+      <div class="pm-name">Paul Hudson, MS, CGC</div>
+      <div class="pm-title">Sr. Medical Science Liaison</div>
+      <a href="mailto:phudson@billiontoone.com">phudson@billiontoone.com</a>
+    </div>
+    <div class="pm-card">
+      <img src="/files/megan-kilroy.png" alt="Megan Kilroy" />
+      <div class="pm-name">Megan Kilroy</div>
+      <div class="pm-title">Marketing Program Contractor</div>
+      <a href="mailto:mkilroy@billiontoone.com">mkilroy@billiontoone.com</a>
+    </div>
+  </div>
+
+  <!-- ---------- Invoicing & Payments ---------- -->
+  <h2>Invoicing &amp; Payments</h2>
+
+  <div class="callout">
+    <p>📄 <strong>How to set up payments with BillionToOne</strong> (if you have not
+      previously set up payments):</p>
+    <p>Please send the following completed forms to
+      <a href="mailto:mkilroy@billiontoone.com">mkilroy@billiontoone.com</a>:</p>
+    <ol>
+      <li>
+        <strong>W-9 Form</strong>
+        &nbsp;<a href="/files/w9-form.pdf" target="_blank" rel="noopener">Download W-9 (PDF)</a>
+      </li>
+    </ol>
+    <p><strong>AND</strong> one of the following:</p>
+    <ul>
+      <li>
+        Completed ACH Form and a voided check
+        &nbsp;<a href="/files/ach-vendor-form.pdf" target="_blank" rel="noopener">Download ACH Form (PDF)</a>
+      </li>
+      <li>
+        <em>— or —</em> Bank Letter with Signature (see example)
+        &nbsp;<a href="/files/sample-bank-letter.pdf" target="_blank" rel="noopener">Sample bank letter (PDF)</a>
+      </li>
+    </ul>
+    <p class="fine">Once complete, you will be able to submit your invoices via the form below.</p>
+  </div>
+
+  <p>
+    <a class="btn" href="https://airtable.com/appHoBhZB7dghdDBT/pag4xHeFieZYayhkH/form"
+       target="_blank" rel="noopener">💲 Submit an Invoice</a>
+  </p>
+  <p class="fine">Please note payments are released 14–18 days after your invoice is
+    approved by our program managers.</p>
+
+  <p>❓
+    <a href="https://app.notion.com/p/Converting-Receipts-to-PDF-Format-FAQ-2d8cd5bf12358022920ed42153f93f59?pvs=21"
+       target="_blank" rel="noopener">Converting Receipts to PDF Format — FAQ</a>
+  </p>
+
+  <!-- ---------- UNITY Product Information ---------- -->
+  <h2>UNITY Product Information &amp; Announcements Corner</h2>
+  <p class="fine"><em>Of note, while these resources are publicly available, their
+    inclusion here is intended for personal education and not for external distribution.</em></p>
+
+  <h3>UNITY Medical Advisor Advocacy Toolkit</h3>
+  <p>
+    Please feel free to utilize this toolkit for a refresher on what makes UNITY unique
+    and to aid in discussions with colleagues or other providers. We have found that
+    referrals/recommendations from peers is the preferred way for most providers to learn
+    more about UNITY — any and all support is greatly appreciated! The toolkit also
+    includes a copy of all of our publications for your reference.
+  </p>
+  <p>
+    <a class="btn-outline" href="/files/ma-advocacy-toolkit.pdf" target="_blank" rel="noopener">
+      📘 Open the Advocacy Toolkit (PDF)</a>
+  </p>
+
+  <h3>Recent UNITY Publications</h3>
   <ul>
-    <li>Content item one</li>
-    <li>Content item two</li>
-    <li>Content item three</li>
+    <li><a href="https://cdn.prod.website-files.com/658d7eeba738c0b7290c4252/68e6838d6b8125779877e3c8_High%20frequency%20of%20critical%20and%20rising%20titers%20in%20alloimmunized%20pregnancies.pdf" target="_blank" rel="noopener">High frequency of critical and rising titers in alloimmunized pregnancies with antigen-negative fetuses</a> (2025)</li>
+    <li><a href="https://cdn.prod.website-files.com/658d7eeba738c0b7290c4252/68dc070b4d1dad45850c195b_prenatal-screening-identifies-pregnancies-at-high-risk-for-cf.pdf" target="_blank" rel="noopener">Routine cell-free DNA prenatal screening identifies pregnancies at high risk for cystic fibrosis that may benefit from fetal therapy</a> (2025)</li>
+    <li><a href="https://cdn.prod.website-files.com/658d7eeba738c0b7290c4252/684b3ec99fd50f5bdc710669_clinical_performance_of_cell_free_dna_for_fetal.pdf" target="_blank" rel="noopener">Clinical Performance of Cell-Free DNA for Fetal RhD Detection in RhD-Negative Pregnant Individuals in the United States</a> (2025)</li>
+    <li>All UNITY Publications are available at
+      <a href="http://www.unityscreen.com/publications" target="_blank" rel="noopener">this link</a>.</li>
   </ul>
+
+  <h3>Core UNITY Provider Resources</h3>
+  <ul>
+    <li>UNITY Complete Provider Brochure —
+      <a href="/files/provider-brochure-2026.pdf" target="_blank" rel="noopener">Provider Brochure 2026 (PDF)</a></li>
+    <li>RhD Resource —
+      <a href="/files/rhd-one-pager.pdf" target="_blank" rel="noopener">RhD One Pager (PDF)</a></li>
+    <li>22q Resource —
+      <a href="/files/22q-one-pager.pdf" target="_blank" rel="noopener">22q One Pager (PDF)</a></li>
+  </ul>
+
+  <h3>Guidelines</h3>
+  <ul>
+    <li>Society for Maternal-Fetal Medicine Consult Series #74:
+      <a href="https://publications.smfm.org/publications/620-society-for-maternal-fetal-medicine-consult-series-74cell/" target="_blank" rel="noopener">Cell-free DNA screening for aneuploidies: Updated guidance</a>
+      (2025, Endorsed by ACOG in 2025)</li>
+    <li>JAMA Special Communication:
+      <a href="https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2841768" target="_blank" rel="noopener">A Clinical Practice Guideline for the Management of Pregnancy Alloimmunized to Red Blood Cell Antigens</a>
+      (Published 2025)</li>
+    <li>ACOG Committee Opinion #690:
+      <a href="https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2017/03/carrier-screening-in-the-age-of-genomic-medicine" target="_blank" rel="noopener">Carrier Screening in the Age of Genomic Medicine</a>
+      (Reaffirmed 2025)</li>
+    <li>ACOG Clinical Practice Update:
+      <a href="https://journals.lww.com/greenjournal/fulltext/2024/08000/acog_clinical_practice_update__paternal_and_fetal.34.aspx" target="_blank" rel="noopener">Paternal and Fetal Genotyping in the Management of Alloimmunization in Pregnancy</a>
+      (2024, Update to Practice Bulletin No. 192)</li>
+  </ul>
+
+  <!-- ---------- Calendar ---------- -->
+  <h2>Calendar 2026 — Conferences &amp; Medical Advisor Events</h2>
+  <div class="table-scroll">
+    <table class="cal">
+      <thead>
+        <tr><th>Event</th><th>Date</th><th>Details</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>SMFM</td>
+          <td>Feb 8–13, 2026</td>
+          <td>We will be hosting an event for our advisors on 2/9 at 9:00 AM. To RSVP, please use the invoice/RSVP form <em>(link to be added)</em>.</td>
+        </tr>
+        <tr>
+          <td>Managing the Alloimmunized Pregnancy: Breakthroughs with cfDNA</td>
+          <td>Feb 9, 2026 · 3:00 PM EST</td>
+          <td>Location: Academy 407–409. For more information and to RSVP:
+            <a href="https://smfm2026.eventscribe.net/SearchByBucket.asp?bm=Industry-Supported%20Learning&f=TrackName&pfp=IndustryLearning2026" target="_blank" rel="noopener">SMFM 2026 session page</a>.</td>
+        </tr>
+        <tr>
+          <td>SMFM Med Advisor Meeting</td>
+          <td>Feb 11, 2026 · 3:00 PM EST</td>
+          <td>Please
+            <a href="https://airtable.com/appHoBhZB7dghdDBT/pagnttG28eFdVrSlv/form" target="_blank" rel="noopener">RSVP here</a>
+            if you will be attending SMFM.</td>
+        </tr>
+        <tr>
+          <td>Q1 MA Zoom</td>
+          <td>Feb 23, 2026 · 5:30 PM EST</td>
+          <td>Google Calendar invites have been sent. Trouble accessing? Contact Paul Hudson —
+            <a href="mailto:phudson@billiontoone.com">phudson@billiontoone.com</a> · 513-502-8272.</td>
+        </tr>
+        <tr>
+          <td>Q1 MA Zoom</td>
+          <td>Feb 25, 2026 · 2:30 PM EST</td>
+          <td>Google Calendar invites have been sent. Trouble accessing? Contact Paul Hudson —
+            <a href="mailto:phudson@billiontoone.com">phudson@billiontoone.com</a> · 513-502-8272.</td>
+        </tr>
+        <tr><td>HQ Tour</td><td>Mar 5–6, 2026</td><td></td></tr>
+        <tr><td>ACOG — Washington, D.C.</td><td>May 1–3, 2026</td><td></td></tr>
+        <tr><td>Q2 MA Zoom</td><td>May 11, 2026 · 5:30 PM EDT</td><td></td></tr>
+        <tr><td>Q2 MA Zoom</td><td>May 13, 2026 · 2:30 PM EDT</td><td></td></tr>
+        <tr><td>Q3 MA Zoom</td><td>Aug 3, 2026 · 5:30 PM EDT</td><td></td></tr>
+        <tr><td>Q3 MA Zoom</td><td>Aug 5, 2026 · 2:30 PM EDT</td><td></td></tr>
+        <tr><td>HQ Tour</td><td>Sep 3–4, 2026</td><td></td></tr>
+        <tr><td>ACNM</td><td>Oct 9–12, 2026</td><td></td></tr>
+        <tr><td>NSGC</td><td>Nov 10–14, 2026</td><td></td></tr>
+        <tr><td>Q4 MA Zoom</td><td>Dec 7, 2026 · 5:30 PM EST</td><td></td></tr>
+        <tr><td>Q4 MA Zoom</td><td>Dec 9, 2026 · 2:30 PM EST</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="fine">Holidays and internal PTO entries from the source calendar have been
+    omitted. Times shown as originally listed.</p>
+
+  <!-- ---------- Helpful Links ---------- -->
+  <h2>ℹ️ Helpful Links &amp; Additional Resources</h2>
+  <ul>
+    <li><a href="https://app.notion.com/p/Converting-Receipts-to-PDF-Format-FAQ-2d8cd5bf12358022920ed42153f93f59?pvs=21" target="_blank" rel="noopener">Converting Receipts to PDF Format — FAQ</a></li>
+    <li><a href="/files/ach-vendor-form.pdf" target="_blank" rel="noopener">BillionToOne New Vendor Form</a> <span class="tag">Invoicing &amp; Payments</span></li>
+    <li><a href="/files/w9-form.pdf" target="_blank" rel="noopener">W-9 Form</a> <span class="tag">Invoicing &amp; Payments</span></li>
+  </ul>
+
 </article>

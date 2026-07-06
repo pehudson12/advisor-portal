@@ -14,7 +14,7 @@ import secrets
 import bcrypt
 from dotenv import load_dotenv
 from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
@@ -58,6 +58,10 @@ app.add_middleware(
 )
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+# Confidential assets (headshots, PDFs) are served ONLY through the
+# authenticated /files route below — never from the public /static mount.
+PROTECTED_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "protected_files")
 
 
 def current_user(request: Request):
@@ -124,6 +128,20 @@ async def hub(request: Request):
     return templates.TemplateResponse(
         "hub.html", {"request": request, "user": user}
     )
+
+
+@app.get("/files/{filename}")
+async def protected_file(request: Request, filename: str):
+    """Serve a confidential asset only to signed-in advisors."""
+    if not current_user(request):
+        return RedirectResponse("/login", status_code=302)
+    # Guard against path traversal: allow only a bare filename.
+    if "/" in filename or "\\" in filename or filename.startswith("."):
+        return Response(status_code=404)
+    path = os.path.join(PROTECTED_DIR, filename)
+    if not os.path.isfile(path):
+        return Response(status_code=404)
+    return FileResponse(path)
 
 
 @app.get("/healthz")
