@@ -7,7 +7,7 @@ authorized, active medical advisors only.
 - **Backend:** FastAPI (Python)
 - **Auth:** passwordless email login codes. Access is controlled by the Airtable
   "Advisors Roster" table — advisors with **Status = Active** can log in.
-- **Email:** one-time codes sent via Google Workspace SMTP
+- **Email:** one-time codes sent via the SendGrid HTTPS API (Render blocks SMTP)
 - **Hosting:** Render web service (auto-deploys on push to `main`)
 
 ---
@@ -76,14 +76,13 @@ Edit that file, commit, and push — Render redeploys automatically.
 | `SECRET_KEY` | Session signing key (long random string) |
 | `COOKIE_HTTPS_ONLY` | `true` in production |
 | `AIRTABLE_TOKEN` | Reads the advisor roster (allowlist) |
-| `SMTP_USER` | Google Workspace sending address |
-| `SMTP_PASSWORD` | Google **app password** for that account |
-| `MAIL_FROM` | From address (usually same as `SMTP_USER`) |
+| `SENDGRID_API_KEY` | SendGrid API key for sending login codes |
+| `MAIL_FROM` | A SendGrid-verified sender address |
 
 Optional overrides (sensible defaults in `app.py`): `AIRTABLE_BASE_ID`,
 `AIRTABLE_TABLE`, `AIRTABLE_EMAIL_FIELD`, `AIRTABLE_STATUS_FIELD`,
-`ALLOWED_STATUS`, `SMTP_HOST`, `SMTP_PORT`, `MAIL_FROM_NAME`, `CODE_TTL_SECONDS`,
-`MAX_ATTEMPTS`, `RESEND_COOLDOWN`, `ROSTER_CACHE_TTL`, `SESSION_MAX_AGE`.
+`ALLOWED_STATUS`, `MAIL_FROM_NAME`, `CODE_TTL_SECONDS`, `MAX_ATTEMPTS`,
+`RESEND_COOLDOWN`, `ROSTER_CACHE_TTL`, `SESSION_MAX_AGE`.
 
 ---
 

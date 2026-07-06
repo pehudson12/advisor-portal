@@ -12,12 +12,9 @@ add/remove an advisor (or flip their Status) there to grant/revoke access.
 No database — pending codes live in memory (they are short-lived).
 """
 
-import asyncio
 import os
 import secrets
-import smtplib
 import time
-from email.message import EmailMessage
 from urllib.parse import quote as urlquote
 
 import bcrypt
@@ -46,12 +43,9 @@ AIRTABLE_STATUS_FIELD = os.environ.get("AIRTABLE_STATUS_FIELD", "Status")
 ALLOWED_STATUS = os.environ.get("ALLOWED_STATUS", "Active").strip().lower()
 ROSTER_CACHE_TTL = int(os.environ.get("ROSTER_CACHE_TTL", 300))  # 5 min
 
-# Email (Google Workspace SMTP by default)
-SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.environ.get("SMTP_PORT", 587))
-SMTP_USER = os.environ.get("SMTP_USER", "")
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
-MAIL_FROM = os.environ.get("MAIL_FROM", SMTP_USER or "no-reply@billiontoone.com")
+# Email (SendGrid HTTPS API — Render blocks outbound SMTP ports)
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
+MAIL_FROM = os.environ.get("MAIL_FROM", "no-reply@billiontoone.com")
 MAIL_FROM_NAME = os.environ.get("MAIL_FROM_NAME", "BillionToOne Medical Advisors")
 
 # Login-code policy
@@ -61,16 +55,16 @@ RESEND_COOLDOWN = int(os.environ.get("RESEND_COOLDOWN", 60))  # seconds
 
 # Dev/testing helpers (leave unset in production):
 #   DEV_ALLOWED_EMAILS — comma-separated emails treated as allowed without Airtable
-#   If SMTP is not configured, codes are printed to the server log instead of emailed.
+#   If SendGrid is not configured, codes are printed to the server log instead.
 DEV_ALLOWED_EMAILS = {
     e.strip().lower()
     for e in os.environ.get("DEV_ALLOWED_EMAILS", "").split(",")
     if e.strip()
 }
-SMTP_CONFIGURED = bool(SMTP_USER and SMTP_PASSWORD)
+EMAIL_CONFIGURED = bool(SENDGRID_API_KEY and MAIL_FROM)
 
 # Temporary diagnostics: when DEBUG_KEY is set, GET /debug/diag?key=...&email=...
-# reports allowlist + SMTP status. Leave DEBUG_KEY unset in normal operation.
+# reports allowlist + email status. Leave DEBUG_KEY unset in normal operation.
 DEBUG_KEY = os.environ.get("DEBUG_KEY", "")
 
 # --- App ---------------------------------------------------------------------
@@ -184,7 +178,7 @@ def _check_code(email: str, code: str) -> bool:
     return False
 
 
-def _send_code_email(to_email: str, code: str):
+async def _send_code_email(to_email: str, code: str):
     subject = "Your BillionToOne Medical Advisors Hub login code"
     body = (
         "Hello,\n\n"
@@ -195,20 +189,26 @@ def _send_code_email(to_email: str, code: str):
         "— BillionToOne Medical Affairs"
     ).format(code=code, mins=CODE_TTL // 60)
 
-    if not SMTP_CONFIGURED:
-        # Dev mode: no SMTP configured, so log the code instead of emailing.
+    if not EMAIL_CONFIGURED:
+        # Dev mode: no SendGrid key configured, so log the code instead.
         print("[DEV] login code for {}: {}".format(to_email, code), flush=True)
         return
 
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = "{} <{}>".format(MAIL_FROM_NAME, MAIL_FROM)
-    msg["To"] = to_email
-    msg.set_content(body)
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as server:
-        server.starttls()
-        server.login(SMTP_USER, SMTP_PASSWORD)
-        server.send_message(msg)
+    payload = {
+        "personalizations": [{"to": [{"email": to_email}]}],
+        "from": {"email": MAIL_FROM, "name": MAIL_FROM_NAME},
+        "subject": subject,
+        "content": [{"type": "text/plain", "value": body}],
+    }
+    headers = {
+        "Authorization": "Bearer " + SENDGRID_API_KEY,
+        "Content-Type": "application/json",
+    }
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        resp = await client.post(
+            "https://api.sendgrid.com/v3/mail/send", headers=headers, json=payload
+        )
+        resp.raise_for_status()
 
 
 # --- Session helpers ---------------------------------------------------------
@@ -247,9 +247,9 @@ async def login_submit(request: Request, email: str = Form(...)):
         if not prev or (time.time() - prev["sent_at"]) >= RESEND_COOLDOWN:
             code = _issue_code(email)
             try:
-                await asyncio.to_thread(_send_code_email, email, code)
+                await _send_code_email(email, code)
             except Exception as exc:
-                print("[email] send failed:", repr(exc))
+                print("[email] send failed:", repr(exc), flush=True)
     # Always behave identically so we never reveal who is/isn't an advisor.
     request.session["pending_email"] = email
     return RedirectResponse("/verify", status_code=302)
@@ -293,9 +293,9 @@ async def resend(request: Request):
         if not prev or (time.time() - prev["sent_at"]) >= RESEND_COOLDOWN:
             code = _issue_code(email)
             try:
-                await asyncio.to_thread(_send_code_email, email, code)
+                await _send_code_email(email, code)
             except Exception as exc:
-                print("[email] send failed:", repr(exc))
+                print("[email] send failed:", repr(exc), flush=True)
     return RedirectResponse("/verify", status_code=302)
 
 
@@ -343,25 +343,29 @@ async def diag(request: Request, key: str = "", email: str = ""):
     except Exception as exc:
         roster = {"ok": False, "error": repr(exc)}
 
-    # 2) SMTP credential check (connect + login only; sends nothing)
-    if not SMTP_CONFIGURED:
-        smtp = {"configured": False}
+    # 2) SendGrid credential check (auth only; sends nothing)
+    if not EMAIL_CONFIGURED:
+        email_check = {"configured": False}
     else:
         try:
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as s:
-                s.starttls()
-                s.login(SMTP_USER, SMTP_PASSWORD)
-            smtp = {"configured": True, "login": "ok"}
+            headers = {"Authorization": "Bearer " + SENDGRID_API_KEY}
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                r = await client.get(
+                    "https://api.sendgrid.com/v3/scopes", headers=headers
+                )
+            email_check = {
+                "configured": True,
+                "auth": "ok" if r.status_code == 200 else "FAILED",
+                "status_code": r.status_code,
+            }
         except Exception as exc:
-            smtp = {"configured": True, "login": "FAILED", "error": repr(exc)}
+            email_check = {"configured": True, "auth": "FAILED", "error": repr(exc)}
 
     return {
         "roster": roster,
-        "smtp": smtp,
-        "smtp_host": SMTP_HOST,
-        "smtp_port": SMTP_PORT,
-        "smtp_user": SMTP_USER,
+        "email": email_check,
         "mail_from": MAIL_FROM,
+        "mail_from_name": MAIL_FROM_NAME,
         "airtable_table": AIRTABLE_TABLE,
         "email_field": AIRTABLE_EMAIL_FIELD,
         "status_field": AIRTABLE_STATUS_FIELD,
@@ -374,5 +378,5 @@ async def healthz():
     return {
         "ok": True,
         "airtable_configured": bool(AIRTABLE_TOKEN),
-        "smtp_configured": SMTP_CONFIGURED,
+        "email_configured": EMAIL_CONFIGURED,
     }
