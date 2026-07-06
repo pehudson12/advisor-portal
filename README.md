@@ -1,40 +1,32 @@
 # Medical Advisors Hub
 
-A password-protected portal that serves the BillionToOne **Medical Advisors Hub**
-content (a static snapshot of the Notion page) to authorized medical advisors only.
+A passwordless, access-controlled portal that serves the BillionToOne
+**Medical Advisors Hub** content (a static snapshot of the Notion page) to
+authorized, active medical advisors only.
 
 - **Backend:** FastAPI (Python)
-- **Auth:** individual email + password accounts (bcrypt-hashed, stored in an env var — no database)
+- **Auth:** passwordless email login codes. Access is controlled by the Airtable
+  "Advisors Roster" table — advisors with **Status = Active** can log in.
+- **Email:** one-time codes sent via Google Workspace SMTP
 - **Hosting:** Render web service (auto-deploys on push to `main`)
 
 ---
 
-## How accounts work
+## How login works
 
-There is **no database**. Advisor accounts live in the `ADVISOR_ACCOUNTS`
-environment variable as JSON mapping each email to a bcrypt password hash:
+1. Advisor enters their email.
+2. If that email belongs to an **Active** advisor in Airtable, the app emails a
+   **6-digit code** (expires in 10 min, attempt-capped, rate-limited).
+3. Advisor enters the code and is signed in for 12 hours.
 
-```json
-{"jane@example.com": "$2b$12$....", "john@example.com": "$2b$12$...."}
-```
+No passwords are stored anywhere. **To grant or revoke access, add/remove the
+advisor (or change their Status) in Airtable** — nothing to deploy.
 
-Passwords are never stored in plain text. This survives Render redeploys because
-it's configuration, not disk state.
+The login response is identical whether or not the email is on the list, so the
+portal never reveals who is (or isn't) an advisor.
 
-### Add or update an advisor
-
-```bash
-python make_hash.py advisor@example.com
-```
-
-It prints a JSON entry. Merge that key into the `ADVISOR_ACCOUNTS` value
-(locally in `.env`, and in the Render dashboard for production), then redeploy.
-
-### Remove an advisor
-Delete their key from `ADVISOR_ACCOUNTS` and redeploy.
-
-### Reset a password
-Re-run `make_hash.py` for that email, replace their hash, redeploy.
+Confidential assets (headshots, PDFs) live in `protected_files/` and are served
+only through the authenticated `/files/<name>` route — never publicly.
 
 ---
 
@@ -47,16 +39,26 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 cp .env.example .env
-# 1) put a real SECRET_KEY in .env:
+# Put a real SECRET_KEY in .env:
 python -c "import secrets; print(secrets.token_hex(32))"
-# 2) create at least one account and paste it into ADVISOR_ACCOUNTS in .env:
-python make_hash.py you@example.com
-# 3) keep COOKIE_HTTPS_ONLY=false for localhost
+```
 
+For quick local testing **without** Airtable or email, set in `.env`:
+
+```
+COOKIE_HTTPS_ONLY=false
+DEV_ALLOWED_EMAILS=you@billiontoone.com
+```
+
+With no `SMTP_USER`/`SMTP_PASSWORD` set, the login code is **printed to the
+server log** instead of emailed. Then:
+
+```bash
 uvicorn app:app --reload
 ```
 
-Open http://127.0.0.1:8000 → you'll be sent to the login page.
+Open http://127.0.0.1:8000, enter the dev email, and read the code from the
+terminal.
 
 ---
 
@@ -67,19 +69,33 @@ Edit that file, commit, and push — Render redeploys automatically.
 
 ---
 
+## Environment variables (set in the Render dashboard)
+
+| Variable | Purpose |
+|----------|---------|
+| `SECRET_KEY` | Session signing key (long random string) |
+| `COOKIE_HTTPS_ONLY` | `true` in production |
+| `AIRTABLE_TOKEN` | Reads the advisor roster (allowlist) |
+| `SMTP_USER` | Google Workspace sending address |
+| `SMTP_PASSWORD` | Google **app password** for that account |
+| `MAIL_FROM` | From address (usually same as `SMTP_USER`) |
+
+Optional overrides (sensible defaults in `app.py`): `AIRTABLE_BASE_ID`,
+`AIRTABLE_TABLE`, `AIRTABLE_EMAIL_FIELD`, `AIRTABLE_STATUS_FIELD`,
+`ALLOWED_STATUS`, `SMTP_HOST`, `SMTP_PORT`, `MAIL_FROM_NAME`, `CODE_TTL_SECONDS`,
+`MAX_ATTEMPTS`, `RESEND_COOLDOWN`, `ROSTER_CACHE_TTL`, `SESSION_MAX_AGE`.
+
+---
+
 ## Deploy to Render
 
 1. Push this repo to GitHub.
 2. Render → **New** → **Web Service** → connect the repo.
 3. Settings:
-   - **Runtime:** Python (auto-detected; `runtime.txt` pins the version)
    - **Build command:** `pip install -r requirements.txt`
    - **Start command:** `uvicorn app:app --host 0.0.0.0 --port $PORT`
-4. **Environment variables** (Render dashboard → Environment):
-   - `SECRET_KEY` — a long random string
-   - `ADVISOR_ACCOUNTS` — the JSON of email→hash (one line)
-   - `COOKIE_HTTPS_ONLY` — `true` (or leave unset)
-5. Create the service. It builds and deploys; subsequent pushes to `main`
-   redeploy automatically.
+4. Add the environment variables above.
+5. Create the service. Pushes to `main` redeploy automatically.
 
-Health check: `GET /healthz` returns `{"ok": true, "accounts_loaded": N}`.
+Health check: `GET /healthz` returns
+`{"ok": true, "airtable_configured": true, "smtp_configured": true}`.

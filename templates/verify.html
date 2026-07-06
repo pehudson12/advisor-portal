@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Enter your code — Medical Advisors Hub{% endblock %}
+{% block body %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-mark">B1</div>
+      <div class="brand-text">BillionToOne</div>
+    </div>
+    <h1>Check your email</h1>
+    <p class="subtitle">
+      If <strong>{{ email }}</strong> is on our advisor list, we've sent a 6-digit
+      login code. Enter it below.
+    </p>
+
+    {% if error %}
+    <div class="alert" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/verify" autocomplete="one-time-code">
+      <label for="code">Login code</label>
+      <input type="text" id="code" name="code" required autofocus
+             inputmode="numeric" pattern="[0-9]*" maxlength="6"
+             autocomplete="one-time-code" placeholder="123456" />
+      <button type="submit">Sign in</button>
+    </form>
+
+    <form method="post" action="/resend" class="resend-form">
+      <button type="submit" class="linkbtn">Didn't get it? Resend code</button>
+    </form>
+
+    <p class="foot"><a href="/login">Use a different email</a></p>
+  </div>
+</div>
+{% endblock %}
